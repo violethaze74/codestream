@@ -154,6 +154,7 @@ export interface ThirdPartyProvider {
 	readonly name: string;
 	readonly displayName: string;
 	readonly icon: string;
+	readonly accessToken?: string;
 	hasTokenError?: boolean;
 	connect(): Promise<void>;
 	configure(data: { [key: string]: any }): Promise<void>;
