@@ -334,7 +334,8 @@ export abstract class ThirdPartyProviderBase<
 		});
 
 		await this.configure({
-			token: this.accessToken
+			token: this.accessToken,
+			data: this._providerInfo.data
 		});
 
 		this._readyPromise = this.onConnected(this._providerInfo);
@@ -382,7 +383,8 @@ export abstract class ThirdPartyProviderBase<
 		if (data.token) {
 			await this.session.api.setThirdPartyProviderToken({
 				providerId: this.providerConfig.id,
-				token: data.token
+				token: data.token,
+				data: data.data
 			});
 			this.session.updateProviders();
 		}

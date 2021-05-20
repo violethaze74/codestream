@@ -1893,18 +1893,27 @@ export class CodeStreamApiProvider implements ApiProvider {
 			const provider = getProvider(request.providerId);
 			if (!provider) throw new Error(`provider ${request.providerId} not found`);
 			const providerConfig = provider.getConfig();
+			const NA = "n/a";
 
 			let key =
-				"1$" + Strings.md5(`${this.baseUrl}|${this.teamId}|${this.userId}|${provider.name}`);
+				"1$" + provider.name + "|" + Strings.md5(`${this.baseUrl}|${this.teamId}|${this.userId}`);
 			await SessionContainer.instance().session.agent.sendRequest(SaveProviderConfigRequestType, {
 				key: key,
 				value: request.token
 			});
 
+			if (request.data) {
+				Object.keys(request.data).forEach(key => {
+					if (request.data && request.data[key] === request.token) {
+						request.data[key] = NA;
+					}
+				});
+			}
+
 			const params: ThirdPartyProviderSetTokenRequestData = {
 				teamId: this.teamId,
 				host: request.host,
-				token: "n/a",
+				token: NA,
 				data: request.data
 			};
 
