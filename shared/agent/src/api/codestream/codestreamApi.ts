@@ -28,7 +28,8 @@ import {
 	RepoScmStatus,
 	UpdateInvisibleRequest,
 	UpdatePostSharingDataRequest,
-	SaveProviderConfigRequestType
+	SaveProviderConfigRequestType,
+	ThirdPartyProviderUnsetTokenRequest
 } from "../../protocol/agent.protocol";
 import {
 	AccessToken,
@@ -1894,8 +1895,7 @@ export class CodeStreamApiProvider implements ApiProvider {
 			const providerConfig = provider.getConfig();
 
 			let key =
-				"1$" +
-				Strings.md5(`${this.baseUrl}|${this.teamId}|${this.userId}|${provider.name}`);
+				"1$" + Strings.md5(`${this.baseUrl}|${this.teamId}|${this.userId}|${provider.name}`);
 			await SessionContainer.instance().session.agent.sendRequest(SaveProviderConfigRequestType, {
 				key: key,
 				value: request.token
@@ -1937,6 +1937,24 @@ export class CodeStreamApiProvider implements ApiProvider {
 		}
 	}
 
+	async unsetThirdPartyProviderToken(
+		request: ThirdPartyProviderUnsetTokenRequest
+	): Promise<boolean> {
+		const providerName = request.providerName;
+		if (!providerName) throw new Error(`provider ${providerName} not found`);
+
+		const params: ThirdPartyProviderSetTokenRequestData = {
+			teamId: this.teamId,
+			token: request.token
+		};
+
+		const response = await this.put<ThirdPartyProviderSetTokenRequestData, { user: any }>(
+			`/provider-set-token/${providerName}`,
+			params,
+			this._token
+		);
+		return response != null;
+	}
 	@log()
 	async setThirdPartyProviderInfo(request: {
 		providerId: string;
