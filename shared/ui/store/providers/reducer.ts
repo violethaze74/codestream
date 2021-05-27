@@ -13,7 +13,6 @@ import { mapFilter, safe } from "@codestream/webview/utils";
 import { ThirdPartyProviderConfig } from "@codestream/protocols/agent";
 import { createSelector } from "reselect";
 import { PROVIDER_MAPPINGS } from "@codestream/webview/Stream/CrossPostIssueControls/types";
-import { ContextState } from "../context/types";
 import { UsersState } from "../users/types";
 import { SessionState } from "../session/types";
 
@@ -49,13 +48,14 @@ export interface LabelHash {
 	PullRequests: string;
 	Pullrequest: string;
 	pullrequest: string;
+	pullrequests: string;
 	PR: string;
 	PRs: string;
 	pr: string;
 	AddSingleComment: string;
 }
 
-const MRLabel = {
+const MRLabel: LabelHash = {
 	PullRequest: "Merge Request",
 	PullRequests: "Merge Requests",
 	Pullrequest: "Merge request",
@@ -67,7 +67,7 @@ const MRLabel = {
 	AddSingleComment: "Add comment now"
 };
 
-const PRLabel = {
+const PRLabel: LabelHash = {
 	PullRequest: "Pull Request",
 	PullRequests: "Pull Requests",
 	Pullrequest: "Pull request",

@@ -302,33 +302,6 @@ export const CheckReviewPreconditionsRequestType = new RequestType<
 	void
 >("codestream/review/checkPreconditions");
 
-export interface CheckPullRequestBranchPreconditionsRequest {
-	reviewId?: string; // either a reviewId or repoId need to be passed in
-	repoId?: string;
-	providerId: string;
-	headRefName?: string;
-	baseRefName?: string;
-}
-
-export interface CheckPullRequestBranchPreconditionsResponse {
-	success: boolean;
-	remote?: string;
-	providerId?: string;
-
-	error?: {
-		message?: string;
-		type?: "REPO_NOT_FOUND" | "ALREADY_HAS_PULL_REQUEST" | "UNKNOWN" | "PROVIDER" | string;
-		url?: string;
-	};
-}
-
-export const CheckPullRequestBranchPreconditionsRequestType = new RequestType<
-	CheckPullRequestBranchPreconditionsRequest,
-	CheckPullRequestBranchPreconditionsResponse,
-	void,
-	void
->("codestream/review/pr/branch/checkPreconditions");
-
 export interface CheckPullRequestPreconditionsRequest {
 	reviewId?: string;
 	repoId?: string;
@@ -342,6 +315,8 @@ export interface CheckPullRequestPreconditionsResponse {
 	success: boolean;
 	review?: Pick<CSReview, "title" | "text">;
 	repoId?: string;
+	isFork?: boolean;
+	nameWithOwner?: string;
 	remoteUrl?: string;
 	remoteBranch?: string;
 	providerId?: string;

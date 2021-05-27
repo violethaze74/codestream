@@ -1,5 +1,4 @@
 "use strict";
-import { ParsedDiff } from "diff";
 import { flatten } from "lodash-es";
 import * as path from "path";
 import { URI } from "vscode-uri";
@@ -8,9 +7,6 @@ import { Container, SessionContainer } from "../container";
 import { EMPTY_TREE_SHA, GitCommit, GitRemote, GitRepository } from "../git/gitService";
 import { Logger } from "../logger";
 import {
-	CheckPullRequestBranchPreconditionsRequest,
-	CheckPullRequestBranchPreconditionsRequestType,
-	CheckPullRequestBranchPreconditionsResponse,
 	CheckPullRequestPreconditionsRequest,
 	CheckPullRequestPreconditionsRequestType,
 	CheckPullRequestPreconditionsResponse,
@@ -580,102 +576,6 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 		};
 	}
 
-	@lspHandler(CheckPullRequestBranchPreconditionsRequestType)
-	@log()
-	async checkPullRequestBranchPreconditions(
-		request: CheckPullRequestBranchPreconditionsRequest
-	): Promise<CheckPullRequestBranchPreconditionsResponse> {
-		const { git } = SessionContainer.instance();
-		try {
-			let repo: GitRepository | undefined = undefined;
-			if (request.reviewId) {
-				const review = await this.getById(request.reviewId);
-				repo = await git.getRepositoryById(review.reviewChangesets[0].repoId);
-			} else if (request.repoId) {
-				repo = await git.getRepositoryById(request.repoId);
-			} else {
-				return {
-					success: false,
-					error: {
-						type: "REPO_NOT_FOUND"
-					}
-				};
-			}
-
-			if (!repo) {
-				return {
-					success: false,
-					error: {
-						type: "REPO_NOT_FOUND"
-					}
-				};
-			}
-
-			const { providerRegistry } = SessionContainer.instance();
-			const user = await SessionContainer.instance().session.api.meUser;
-			if (!user) {
-				Logger.warn("Could not find CSMe user");
-				return {
-					success: false
-				};
-			}
-
-			let remoteUrl = "";
-			let providerId = "";
-
-			const connectedProviders = await providerRegistry.getConnectedPullRequestProviders(user);
-
-			for (const provider of connectedProviders) {
-				const id = provider.getConfig().id;
-				if (id !== request.providerId) continue;
-				providerId = id;
-
-				const providerRepo = await repo.getPullRequestProvider(user, connectedProviders);
-
-				if (providerRepo?.provider && providerRepo?.remotes?.length > 0) {
-					remoteUrl = providerRepo.remotes[0].webUrl;
-					const providerRepoInfo = await providerRegistry.getRepoInfo({
-						providerId: providerId,
-						remote: remoteUrl
-					});
-					if (providerRepoInfo) {
-						if (providerRepoInfo.pullRequests && request.baseRefName && request.headRefName) {
-							const existingPullRequest = providerRepoInfo.pullRequests.find(
-								(_: any) =>
-									_.baseRefName === request.baseRefName && _.headRefName === request.headRefName
-							);
-							if (existingPullRequest) {
-								return {
-									success: false,
-									error: {
-										type: "ALREADY_HAS_PULL_REQUEST",
-										url: existingPullRequest.url
-									}
-								};
-							}
-						}
-						// break out of providers loop
-						break;
-					}
-				}
-			}
-
-			return {
-				success: true,
-				remote: remoteUrl,
-				providerId: providerId
-			};
-		} catch (ex) {
-			return {
-				success: false,
-				error: {
-					message: typeof ex === "string" ? ex : ex.message,
-					type: "UNKNOWN"
-				}
-			};
-		}
-	}
-
 	@lspHandler(CheckPullRequestPreconditionsRequestType)
 	@log()
 	async checkPullRequestPreconditions(
@@ -739,6 +639,8 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 			const headRefName = request.headRefName || (review && review.reviewChangesets[0].branch);
 
 			let success = false;
+			let isFork = undefined;
+			let nameWithOwner = undefined;
 			let remoteUrl;
 			let providerId;
 
@@ -791,6 +693,8 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 					providerId = providerRepo.providerId;
 					isProviderConnected = true;
 					remotes = providerRepo.remotes;
+					isFork = providerRepoInfo.isFork;
+					nameWithOwner = providerRepoInfo.nameWithOwner;
 				}
 			}
 
@@ -835,14 +739,21 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 				remoteBranch = branchRemote;
 			}
 
-			const pullRequestTemplate =
-				(await xfs.readText(path.join(repo.path, "pull_request_template.md"))) ||
-				(await xfs.readText(path.join(repo.path, "PULL_REQUEST_TEMPLATE.md"))) ||
-				(await xfs.readText(path.join(repo.path, "docs/pull_request_template.md"))) ||
-				(await xfs.readText(path.join(repo.path, "docs/PULL_REQUEST_TEMPLATE.md"))) ||
-				(await xfs.readText(path.join(repo.path, ".github/pull_request_template.md"))) ||
-				(await xfs.readText(path.join(repo.path, ".github/PULL_REQUEST_TEMPLATE.md"))) ||
-				(await xfs.readText(path.join(repo.path, ".gitlab/merge_request_template.md")));
+			let pullRequestTemplate;
+			for (const file of [
+				"pull_request_template.md",
+				"PULL_REQUEST_TEMPLATE.md",
+				"docs/pull_request_template.md",
+				"docs/PULL_REQUEST_TEMPLATE.md",
+				".github/pull_request_template.md",
+				".github/PULL_REQUEST_TEMPLATE.md",
+				".gitlab/merge_request_template.md"
+			]) {
+				pullRequestTemplate = await xfs.readText(path.join(repo.path, file));
+				if (pullRequestTemplate) {
+					break;
+				}
+			}
 
 			let pullRequestTemplateNames: string[] = [];
 			const templatePath = path.join(repo.path, ".gitlab", "merge_request_templates");
@@ -859,9 +770,11 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 				baseRefName!
 			);
 
-			return {
+			const response = {
 				success: success,
 				repoId: repo.id,
+				isFork: isFork,
+				nameWithOwner: nameWithOwner,
 				remoteUrl: remoteUrl,
 				providerId: providerId,
 				pullRequestTemplate,
@@ -886,6 +799,8 @@ export class ReviewsManager extends CachedEntityManagerBase<CSReview> {
 				commitsBehindOriginHeadBranch: commitsBehindOrigin,
 				warning: warning
 			};
+			Logger.debug(JSON.stringify(response, null, 4));
+			return response;
 		} catch (ex) {
 			return {
 				success: false,

@@ -17,7 +17,7 @@ import { ChangePhoneNumber } from "./ChangePhoneNumber";
 import { ChangeAvatar } from "./ChangeAvatar";
 import { ChangeTeamName } from "./ChangeTeamName";
 import { TeamSetup } from "./TeamSetup";
-import { CreatePullRequestPanel } from "./CreatePullRequestPanel";
+import { CreatePullRequestPanel } from "./CreatePullRequestPanel2";
 import { IntegrationsPanel } from "./IntegrationsPanel";
 import { ProfilePanel } from "./ProfilePanel";
 import { ReviewSettings } from "./ReviewSettings";
