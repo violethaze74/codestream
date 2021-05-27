@@ -53,6 +53,10 @@ export interface LabelHash {
 	PRs: string;
 	pr: string;
 	AddSingleComment: string;
+	repoBaseLabel: string;
+	repoBranchBaseLabel;
+	repoHeadLabel: string;
+	repoBranchHeadLabel: string;
 }
 
 const MRLabel: LabelHash = {
@@ -64,7 +68,11 @@ const MRLabel: LabelHash = {
 	PR: "MR",
 	PRs: "MRs",
 	pr: "mr",
-	AddSingleComment: "Add comment now"
+	AddSingleComment: "Add comment now",
+	repoBaseLabel: "source",
+	repoBranchBaseLabel: "source",
+	repoHeadLabel: "target",
+	repoBranchHeadLabel: "target"
 };
 
 const PRLabel: LabelHash = {
@@ -76,7 +84,11 @@ const PRLabel: LabelHash = {
 	PR: "PR",
 	PRs: "PRs",
 	pr: "pr",
-	AddSingleComment: "Add single comment"
+	AddSingleComment: "Add single comment",
+	repoBaseLabel: "base",
+	repoBranchBaseLabel: "base",
+	repoHeadLabel: "head",
+	repoBranchHeadLabel: "compare"
 };
 
 export const getPRLabel = createSelector(

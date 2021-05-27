@@ -771,7 +771,8 @@ export const CreatePullRequestPanel = props => {
 		return (
 			<span>
 				<DropdownButton variant="secondary" items={items}>
-					<span className="subtle">base:</span> <strong>{prBranch || reviewBranch}</strong>
+					<span className="subtle">{prLabel.repoBranchBaseLabel}:</span>{" "}
+					<strong>{prBranch || reviewBranch}</strong>
 				</DropdownButton>
 			</span>
 		);
@@ -825,7 +826,8 @@ export const CreatePullRequestPanel = props => {
 		}
 		return (
 			<DropdownButton variant="secondary" items={items}>
-				<span className="subtle">compare:</span> <strong>{reviewBranch}</strong>
+				<span className="subtle">{prLabel.repoBranchHeadLabel}:</span>{" "}
+				<strong>{reviewBranch}</strong>
 			</DropdownButton>
 		);
 	};
@@ -949,7 +951,8 @@ export const CreatePullRequestPanel = props => {
 		return (
 			<span>
 				<DropdownButton variant="secondary" items={items}>
-					<span className="subtle">base repo:</span> <strong>{baseForkedRepo.nameWithOwner}</strong>
+					<span className="subtle">{prLabel.repoBaseLabel} repo:</span>{" "}
+					<strong>{baseForkedRepo.nameWithOwner}</strong>
 				</DropdownButton>
 			</span>
 		);
@@ -982,7 +985,8 @@ export const CreatePullRequestPanel = props => {
 		return (
 			<span>
 				<DropdownButton variant="secondary" items={items}>
-					<span className="subtle">head repo:</span> <strong>{headForkedRepo.nameWithOwner}</strong>
+					<span className="subtle">{prLabel.repoHeadLabel} repo:</span>{" "}
+					<strong>{headForkedRepo.nameWithOwner}</strong>
 				</DropdownButton>
 			</span>
 		);
