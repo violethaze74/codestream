@@ -1418,14 +1418,8 @@ export const CreatePullRequestPanel = props => {
 	return (
 		<Root className="full-height-codemark-form">
 			<PanelHeader title={`Open a ${prLabel.PullRequest}`}>
-				{reviewId ? "" : `Choose two branches to start a new ${prLabel.pullrequest}.`}
-				{!reviewId && (
-					<>
-						{" "}
-						If you need to, you can also{" "}
-						<a onClick={() => setAcrossForks(!acrossForks)}>compare across forks</a>.
-					</>
-				)}
+				Choose two branches to start a new {prLabel.pullrequest}. If you need to, you can also{" "}
+				<a onClick={() => setAcrossForks(!acrossForks)}>compare across forks</a>.
 			</PanelHeader>
 			<CancelButton onClick={props.closePanel} />
 			<span className="plane-container">
@@ -1465,7 +1459,7 @@ export const CreatePullRequestPanel = props => {
 									<div className="control-group">
 										<PRCompare>
 											{acrossForks && <Icon name="git-compare" />}
-											{(acrossForks || openRepos.length > 0) && !reviewId && (
+											{(acrossForks || openRepos.length > 0) && (
 												<PRDropdown>
 													{!acrossForks && <Icon name="repo" />}
 													{renderBaseReposDropdown()}
